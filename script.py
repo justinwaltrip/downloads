@@ -25,23 +25,19 @@ def extract_first_page_text(filepath):
 
 
 def get_pdf_metadata(filepath):
-    """Get the page count, file size, and first page text of a PDF file."""
+    """Get the page count and first page text of a PDF file."""
     try:
         with open(filepath, "rb") as file:
             reader = PyPDF2.PdfReader(file)
             page_count = len(reader.pages)
-            file_size = os.path.getsize(filepath)
-
             # Extract text from first page
             first_page_text = ""
             if page_count > 0:
                 first_page_text = reader.pages[0].extract_text()
                 # Clean the text (remove extra whitespace, etc.)
                 first_page_text = re.sub(r"\s+", " ", first_page_text).strip()
-
             return {
                 "page_count": page_count,
-                "file_size": file_size,
                 "first_page_text": first_page_text,
                 "path": filepath,
             }
@@ -49,7 +45,6 @@ def get_pdf_metadata(filepath):
         print(f"Error processing {filepath}: {e}")
         return {
             "page_count": None,
-            "file_size": 0,
             "first_page_text": "",
             "path": filepath,
         }
@@ -76,14 +71,12 @@ def process_directory(directory, max_workers=None):
             filepath = os.path.join(root, file)
             if filepath.lower().endswith(".pdf"):
                 files_to_process.append((filepath, directory))
-
     # Process files in parallel
     results = {}
     total_files = len(files_to_process)
     if total_files == 0:
         print(f"No PDF files found in {directory}")
         return results
-
     print(f"Processing {total_files} PDF files in {directory}...")
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         for result in tqdm.tqdm(
@@ -95,7 +88,6 @@ def process_directory(directory, max_workers=None):
             if result:
                 rel_path, metadata = result
                 results[rel_path] = metadata
-
     return results
 
 
@@ -103,25 +95,19 @@ def calculate_text_similarity(text1, text2):
     """Calculate similarity between two text strings."""
     if not text1 or not text2:
         return 0.0
-
     # Convert to lowercase for better matching
     text1 = text1.lower()
     text2 = text2.lower()
-
     # Find the longest common substring
     words1 = text1.split()
     words2 = text2.split()
-
     # If either text is very short, require an exact match
     if len(words1) < 5 or len(words2) < 5:
         return 1.0 if text1 == text2 else 0.0
-
     # Count matching words
     common_words = set(words1) & set(words2)
-
     # Calculate Jaccard similarity
     similarity = len(common_words) / (len(set(words1) | set(words2)))
-
     return similarity
 
 
@@ -131,21 +117,18 @@ def match_files_by_metadata(
     output_dir=None,
     dry_run=True,
     text_similarity_threshold=0.7,
-    size_tolerance=1.1,  # Allow flattened files to be up to 10% larger
     max_workers=None,
 ):
-    """Match files based on page count, first page text, and file size."""
+    """Match files based on page count and first page text."""
     # Process directories in parallel
     print("Scanning directories...")
     original_files = process_directory(original_dir, max_workers=max_workers)
     flattened_files = process_directory(flattened_dir, max_workers=max_workers)
-
-    # Match files based on page count, text similarity, and file size
+    # Match files based on page count and text similarity
     matches = []
     text_matches = []
     ambiguous = []
     unmatched = []
-
     print(f"\nMatching files...")
     for flat_file, flat_info in tqdm.tqdm(
         flattened_files.items(), desc="Identifying matches", unit="files"
@@ -154,13 +137,11 @@ def match_files_by_metadata(
         if page_count is None:
             unmatched.append(flat_file)
             continue
-
         # Find all original files with the same page count
         matching_originals = []
         for orig_file, orig_info in original_files.items():
             if orig_info["page_count"] == page_count:
                 matching_originals.append((orig_file, orig_info))
-
         if len(matching_originals) == 0:
             unmatched.append(flat_file)
         elif len(matching_originals) == 1:
@@ -171,36 +152,17 @@ def match_files_by_metadata(
             best_match = None
             best_similarity = 0
             flat_text = flat_info["first_page_text"]
-
             for orig_file, orig_info in matching_originals:
                 orig_text = orig_info["first_page_text"]
                 similarity = calculate_text_similarity(flat_text, orig_text)
-
                 if similarity > best_similarity:
                     best_similarity = similarity
                     best_match = orig_file
-
             if best_similarity >= text_similarity_threshold:
                 text_matches.append((flat_file, best_match, best_similarity))
             else:
-                # If text matching fails, try file size as a last resort
-                best_match = None
-                best_size_ratio = float("inf")
-
-                for orig_file, orig_info in matching_originals:
-                    if orig_info["file_size"] > 0:
-                        size_ratio = flat_info["file_size"] / orig_info["file_size"]
-                        if (
-                            1.0 <= size_ratio <= size_tolerance
-                            and size_ratio < best_size_ratio
-                        ):
-                            best_size_ratio = size_ratio
-                            best_match = orig_file
-
-                if best_match:
-                    matches.append((flat_file, best_match))
-                else:
-                    ambiguous.append((flat_file, [o[0] for o in matching_originals]))
+                # If no good text match, mark as ambiguous
+                ambiguous.append((flat_file, [o[0] for o in matching_originals]))
 
     # Combine all matches
     all_matches = matches + [(flat, orig) for flat, orig, _ in text_matches]
@@ -280,13 +242,7 @@ if __name__ == "__main__":
         "--text-threshold",
         type=float,
         default=0.99,
-        help="Text similarity threshold for matching (0.0-1.0, default: 0.7)",
-    )
-    parser.add_argument(
-        "--size-tolerance",
-        type=float,
-        default=1.1,
-        help="File size tolerance factor (flattened/original ratio, default: 1.1)",
+        help="Text similarity threshold for matching (0.0-1.0, default: 0.99)",
     )
     parser.add_argument(
         "--workers",
@@ -310,7 +266,6 @@ if __name__ == "__main__":
     if output_dir:
         print(f"Output directory: {output_dir}")
     print(f"Text similarity threshold: {args.text_threshold}")
-    print(f"Size tolerance factor: {args.size_tolerance}")
     print(f"Worker threads: {args.workers or 'Auto'}")
     print(f"Mode: {'Execution' if args.execute and output_dir else 'Dry run'}")
     print("-" * 50)
@@ -321,6 +276,5 @@ if __name__ == "__main__":
         output_dir=output_dir,
         dry_run=not (args.execute and output_dir),
         text_similarity_threshold=args.text_threshold,
-        size_tolerance=args.size_tolerance,
         max_workers=args.workers,
     )
