@@ -12,6 +12,7 @@ import numpy as np
 import io
 from PIL import Image
 import fitz  # PyMuPDF
+import tempfile  # <-- Add this import
 
 
 def get_cache_path(directory):
@@ -104,33 +105,72 @@ def calculate_image_similarity(img1, img2):
     return similarity
 
 
+def remove_annotations(pdf_path, temp_output_path):
+    """Create a copy of the PDF with all annotations removed."""
+    try:
+        reader = PyPDF2.PdfReader(pdf_path)
+        writer = PyPDF2.PdfWriter()
+        for page in reader.pages:
+            new_page = writer.add_page(page)
+            # Remove annotations if present
+            if '/Annots' in new_page:
+                del new_page['/Annots']
+        with open(temp_output_path, 'wb') as output_file:
+            writer.write(output_file)
+        return temp_output_path
+    except Exception as e:
+        print(f"Error removing annotations from {pdf_path}: {e}")
+        return pdf_path  # Fallback to original if error
+
+
+def get_first_page_image_without_annotations(filepath, dpi=72):
+    """Extract the first page image with annotations removed."""
+    temp_path = os.path.join(tempfile.gettempdir(), f"temp_{os.path.basename(filepath)}")
+    try:
+        cleaned_pdf = remove_annotations(filepath, temp_path)
+        img = get_first_page_image(cleaned_pdf, dpi)
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        return img
+    except Exception as e:
+        print(f"Error removing annotations: {e}")
+        return get_first_page_image(filepath, dpi)
+
+
+def extract_first_page_text_improved(filepath):
+    """Extract text from first page with better handling of annotations."""
+    try:
+        doc = fitz.open(filepath)
+        if len(doc) > 0:
+            text = doc[0].get_text()
+            return re.sub(r"\s+", " ", text).strip()
+        return ""
+    except Exception as e:
+        print(f"Error extracting text: {e}")
+        return ""
+
+
 def get_pdf_metadata(filepath, extract_image=False):
     """Get the page count, first page text, and optionally first page image of a PDF file."""
     try:
+        # Use improved text extraction
+        page_count = 0
+        first_page_text = ""
         with open(filepath, "rb") as file:
             reader = PyPDF2.PdfReader(file)
             page_count = len(reader.pages)
-            # Extract text from first page
-            first_page_text = ""
-            if page_count > 0:
-                first_page_text = reader.pages[0].extract_text()
-                # Clean the text (remove extra whitespace, etc.)
-                first_page_text = re.sub(r"\s+", " ", first_page_text).strip()
-
-            metadata = {
-                "page_count": page_count,
-                "first_page_text": first_page_text,
-                "path": filepath,
-                "mtime": os.path.getmtime(filepath),
-                "first_page_image": None,
-            }
-
-            # Extract image if requested
-            if extract_image and page_count > 0:
-                # We don't store the image in the cache, just a flag that it was extracted
-                metadata["first_page_image"] = True
-
-            return metadata
+        if page_count > 0:
+            first_page_text = extract_first_page_text_improved(filepath)
+        metadata = {
+            "page_count": page_count,
+            "first_page_text": first_page_text,
+            "path": filepath,
+            "mtime": os.path.getmtime(filepath),
+            "first_page_image": None,
+        }
+        if extract_image and page_count > 0:
+            metadata["first_page_image"] = True
+        return metadata
     except Exception as e:
         print(f"Error processing {filepath}: {e}")
         return {
@@ -310,7 +350,8 @@ def match_files_by_metadata(
             ambiguous, desc="Visual comparison", unit="files"
         ):
             flat_path = os.path.join(flattened_dir, flat_file)
-            flat_image = get_first_page_image(flat_path)
+            # Use cleaned image for comparison
+            flat_image = get_first_page_image_without_annotations(flat_path)
 
             if flat_image is None:
                 continue
@@ -320,7 +361,7 @@ def match_files_by_metadata(
 
             for orig_file in possible_matches:
                 orig_path = os.path.join(original_dir, orig_file)
-                orig_image = get_first_page_image(orig_path)
+                orig_image = get_first_page_image_without_annotations(orig_path)
 
                 if orig_image is None:
                     continue
