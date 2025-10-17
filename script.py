@@ -8,6 +8,10 @@ import re
 import json
 import hashlib
 import time
+import numpy as np
+import io
+from PIL import Image
+import fitz  # PyMuPDF
 
 
 def get_cache_path(directory):
@@ -61,8 +65,47 @@ def extract_first_page_text(filepath):
         return ""
 
 
-def get_pdf_metadata(filepath):
-    """Get the page count and first page text of a PDF file."""
+def get_first_page_image(filepath, dpi=72):
+    """Extract the first page of a PDF as an image."""
+    try:
+        doc = fitz.open(filepath)
+        if len(doc) > 0:
+            page = doc[0]
+            pix = page.get_pixmap(matrix=fitz.Matrix(dpi / 72, dpi / 72))
+            img_data = pix.tobytes("png")
+            img = Image.open(io.BytesIO(img_data))
+            # Convert to grayscale and resize to standardize
+            img = img.convert("L").resize((300, 300), Image.LANCZOS)
+            return np.array(img)
+        return None
+    except Exception as e:
+        print(f"Error extracting image from {filepath}: {e}")
+        return None
+
+
+def calculate_image_similarity(img1, img2):
+    """Calculate similarity between two images using MSE."""
+    if img1 is None or img2 is None:
+        return 0.0
+
+    # Ensure both images have the same dimensions
+    if img1.shape != img2.shape:
+        return 0.0
+
+    # Calculate Mean Squared Error
+    mse = np.mean((img1.astype(float) - img2.astype(float)) ** 2)
+    if mse == 0:
+        return 1.0  # Images are identical
+
+    # Convert MSE to similarity score (1.0 = identical, 0.0 = completely different)
+    # Using exponential decay function to map MSE to similarity
+    max_mse = 10000  # Adjust based on your image characteristics
+    similarity = np.exp(-mse / max_mse)
+    return similarity
+
+
+def get_pdf_metadata(filepath, extract_image=False):
+    """Get the page count, first page text, and optionally first page image of a PDF file."""
     try:
         with open(filepath, "rb") as file:
             reader = PyPDF2.PdfReader(file)
@@ -73,12 +116,21 @@ def get_pdf_metadata(filepath):
                 first_page_text = reader.pages[0].extract_text()
                 # Clean the text (remove extra whitespace, etc.)
                 first_page_text = re.sub(r"\s+", " ", first_page_text).strip()
-            return {
+
+            metadata = {
                 "page_count": page_count,
                 "first_page_text": first_page_text,
                 "path": filepath,
                 "mtime": os.path.getmtime(filepath),
+                "first_page_image": None,
             }
+
+            # Extract image if requested
+            if extract_image and page_count > 0:
+                # We don't store the image in the cache, just a flag that it was extracted
+                metadata["first_page_image"] = True
+
+            return metadata
     except Exception as e:
         print(f"Error processing {filepath}: {e}")
         return {
@@ -86,12 +138,13 @@ def get_pdf_metadata(filepath):
             "first_page_text": "",
             "path": filepath,
             "mtime": os.path.getmtime(filepath) if os.path.exists(filepath) else 0,
+            "first_page_image": None,
         }
 
 
 def process_file(args):
     """Process a single file to extract metadata."""
-    filepath, base_dir, cache = args
+    filepath, base_dir, cache, extract_image = args
     rel_path = os.path.relpath(filepath, base_dir)
 
     # Check if file is in cache and hasn't been modified
@@ -100,12 +153,14 @@ def process_file(args):
         return rel_path, cache[rel_path]
 
     if filepath.lower().endswith(".pdf"):
-        metadata = get_pdf_metadata(filepath)
+        metadata = get_pdf_metadata(filepath, extract_image=extract_image)
         return rel_path, metadata
     return None
 
 
-def process_directory(directory, max_workers=None, use_cache=True):
+def process_directory(
+    directory, max_workers=None, use_cache=True, extract_images=False
+):
     """Process all PDF files in a directory with parallel execution."""
     cache_path = get_cache_path(directory)
     cache_data = (
@@ -123,7 +178,9 @@ def process_directory(directory, max_workers=None, use_cache=True):
                 continue
             filepath = os.path.join(root, file)
             if filepath.lower().endswith(".pdf"):
-                files_to_process.append((filepath, directory, cached_metadata))
+                files_to_process.append(
+                    (filepath, directory, cached_metadata, extract_images)
+                )
 
     # Process files in parallel
     results = {}
@@ -179,22 +236,27 @@ def match_files_by_metadata(
     output_dir=None,
     dry_run=True,
     text_similarity_threshold=0.7,
+    image_similarity_threshold=0.99,
     max_workers=None,
     use_cache=True,
 ):
-    """Match files based on page count and first page text."""
+    """Match files based on page count, text content, and visual similarity."""
     # Process directories in parallel
     print("Scanning directories...")
     original_files = process_directory(
-        original_dir, max_workers=max_workers, use_cache=use_cache
+        original_dir, max_workers=max_workers, use_cache=use_cache, extract_images=False
     )
     flattened_files = process_directory(
-        flattened_dir, max_workers=max_workers, use_cache=use_cache
+        flattened_dir,
+        max_workers=max_workers,
+        use_cache=use_cache,
+        extract_images=False,
     )
 
     # Match files based on page count and text similarity
     matches = []
     text_matches = []
+    image_matches = []
     ambiguous = []
     unmatched = []
 
@@ -234,18 +296,61 @@ def match_files_by_metadata(
             if best_similarity >= text_similarity_threshold:
                 text_matches.append((flat_file, best_match, best_similarity))
             else:
-                # If no good text match, mark as ambiguous
+                # If no good text match, mark for visual comparison
                 ambiguous.append((flat_file, [o[0] for o in matching_originals]))
 
+    # Try to resolve ambiguous matches with visual similarity
+    if ambiguous:
+        print(
+            f"\nAttempting to resolve {len(ambiguous)} ambiguous matches using visual similarity..."
+        )
+        resolved_ambiguous = []
+
+        for flat_file, possible_matches in tqdm.tqdm(
+            ambiguous, desc="Visual comparison", unit="files"
+        ):
+            flat_path = os.path.join(flattened_dir, flat_file)
+            flat_image = get_first_page_image(flat_path)
+
+            if flat_image is None:
+                continue
+
+            best_match = None
+            best_similarity = 0
+
+            for orig_file in possible_matches:
+                orig_path = os.path.join(original_dir, orig_file)
+                orig_image = get_first_page_image(orig_path)
+
+                if orig_image is None:
+                    continue
+
+                similarity = calculate_image_similarity(flat_image, orig_image)
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_match = orig_file
+
+            if best_similarity >= image_similarity_threshold:
+                image_matches.append((flat_file, best_match, best_similarity))
+                resolved_ambiguous.append(flat_file)
+
+        # Remove resolved files from ambiguous list
+        ambiguous = [(f, m) for f, m in ambiguous if f not in resolved_ambiguous]
+
     # Combine all matches
-    all_matches = matches + [(flat, orig) for flat, orig, _ in text_matches]
+    all_matches = (
+        matches
+        + [(flat, orig) for flat, orig, _ in text_matches]
+        + [(flat, orig) for flat, orig, _ in image_matches]
+    )
 
     # Print results
     print(f"\nMatching Results:")
     print(f"  Unique matches by page count: {len(matches)}")
     print(f"  Matches resolved by text similarity: {len(text_matches)}")
+    print(f"  Matches resolved by visual similarity: {len(image_matches)}")
     print(f"  Total matches: {len(all_matches)}")
-    print(f"  Ambiguous matches: {len(ambiguous)}")
+    print(f"  Remaining ambiguous matches: {len(ambiguous)}")
     print(f"  Unmatched files: {len(unmatched)}")
 
     # Print detailed information
@@ -262,6 +367,13 @@ def match_files_by_metadata(
             print(f"  {flat_file} -> {orig_file} (similarity: {similarity:.2f})")
         if len(text_matches) > 10:
             print(f"  ... and {len(text_matches) - 10} more")
+
+    if image_matches:
+        print("\nMatches Resolved by Visual Similarity (showing first 10):")
+        for i, (flat_file, orig_file, similarity) in enumerate(image_matches[:10]):
+            print(f"  {flat_file} -> {orig_file} (similarity: {similarity:.2f})")
+        if len(image_matches) > 10:
+            print(f"  ... and {len(image_matches) - 10} more")
 
     # If not a dry run and output directory is provided, copy matched files
     if not dry_run and output_dir:
@@ -294,7 +406,7 @@ def match_files_by_metadata(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Match files between flattened and original directories based on page count and text content."
+        description="Match files between flattened and original directories based on page count, text content, and visual similarity."
     )
     parser.add_argument(
         "-f", "--flattened", required=True, help="Path to the flattened directory"
@@ -318,8 +430,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--text-threshold",
         type=float,
+        default=0.7,
+        help="Text similarity threshold for matching (0.0-1.0, default: 0.7)",
+    )
+    parser.add_argument(
+        "--image-threshold",
+        type=float,
         default=0.99,
-        help="Text similarity threshold for matching (0.0-1.0, default: 0.99)",
+        help="Visual similarity threshold for matching (0.0-1.0, default: 0.99)",
     )
     parser.add_argument(
         "--workers",
@@ -334,9 +452,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Validate similarity threshold
+    # Validate similarity thresholds
     if args.text_threshold < 0 or args.text_threshold > 1:
         parser.error("Text similarity threshold must be between 0.0 and 1.0")
+    if args.image_threshold < 0 or args.image_threshold > 1:
+        parser.error("Image similarity threshold must be between 0.0 and 1.0")
 
     # Resolve paths
     flattened_dir = os.path.abspath(args.flattened)
@@ -348,6 +468,7 @@ if __name__ == "__main__":
     if output_dir:
         print(f"Output directory: {output_dir}")
     print(f"Text similarity threshold: {args.text_threshold}")
+    print(f"Image similarity threshold: {args.image_threshold}")
     print(f"Worker threads: {args.workers or 'Auto'}")
     print(f"Caching: {'Disabled' if args.no_cache else 'Enabled'}")
     print(f"Mode: {'Execution' if args.execute and output_dir else 'Dry run'}")
@@ -359,6 +480,7 @@ if __name__ == "__main__":
         output_dir=output_dir,
         dry_run=not (args.execute and output_dir),
         text_similarity_threshold=args.text_threshold,
+        image_similarity_threshold=args.image_threshold,
         max_workers=args.workers,
         use_cache=not args.no_cache,
     )
