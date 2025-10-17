@@ -15,7 +15,7 @@ import io
 import tqdm
 
 
-def get_pdf_metadata(filepath):
+def get_pdf_metadata(filepath, clean_for_comparison=False):
     """Get the page count and visual hash from a PDF file."""
     try:
         with open(filepath, "rb") as file:
@@ -23,8 +23,13 @@ def get_pdf_metadata(filepath):
             # Get page count from original file
             reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
             page_count = len(reader.pages)
-            # Clean PDF for visual hash calculation
-            clean_pdf_bytes = clean_pdf_for_comparison(pdf_bytes)
+
+            # Clean PDF for flattened files only if specified
+            if clean_for_comparison:
+                clean_pdf_bytes = clean_pdf_for_comparison(pdf_bytes)
+            else:
+                clean_pdf_bytes = pdf_bytes
+
             # Create visual hash from first 3 pages (or all if fewer than 3)
             visual_hash = ""
             if page_count > 0:
@@ -33,7 +38,6 @@ def get_pdf_metadata(filepath):
                 try:
                     # Use only first 3 pages (or all if fewer)
                     pages_to_convert = list(range(min(3, page_count)))
-
                     for page_num in pages_to_convert:
                         # Use cleaned PDF for image conversion
                         pages.extend(
@@ -41,14 +45,14 @@ def get_pdf_metadata(filepath):
                                 clean_pdf_bytes,
                                 first_page=page_num + 1,
                                 last_page=page_num + 1,
-                                dpi=100,  # Lower DPI for faster processing
+                                dpi=150,  # Higher DPI for better comparison
                             )
                         )
                     # Create visual hash
                     for page_image in pages:
-                        # Resize for faster comparison
+                        # Use larger image size for better comparison
                         small_img = page_image.resize(
-                            (32, 32), Image.Resampling.LANCZOS
+                            (64, 64), Image.Resampling.LANCZOS
                         )
                         # Convert to grayscale
                         gray_img = small_img.convert("L")
@@ -101,10 +105,11 @@ def clean_pdf_for_comparison(pdf_bytes):
 
 def process_file(args):
     """Process a single file to extract metadata."""
-    filepath, base_dir = args
+    filepath, base_dir, is_flattened = args
     rel_path = os.path.relpath(filepath, base_dir)
     if filepath.lower().endswith(".pdf"):
-        metadata = get_pdf_metadata(filepath)
+        # Only clean PDFs from the flattened directory
+        metadata = get_pdf_metadata(filepath, clean_for_comparison=is_flattened)
         return rel_path, {
             "page_count": metadata["page_count"],
             "visual_hash": metadata["visual_hash"],
@@ -113,7 +118,7 @@ def process_file(args):
     return None
 
 
-def process_directory(directory, max_workers=None):
+def process_directory(directory, is_flattened=False, max_workers=None):
     """Process all PDF files in a directory with parallel execution."""
     files_to_process = []
     # Collect all PDF files
@@ -123,7 +128,7 @@ def process_directory(directory, max_workers=None):
                 continue
             filepath = os.path.join(root, file)
             if filepath.lower().endswith(".pdf"):
-                files_to_process.append((filepath, directory))
+                files_to_process.append((filepath, directory, is_flattened))
 
     # Process files in parallel
     results = {}
@@ -193,8 +198,12 @@ def match_files_by_metadata(
     """
     # Process directories in parallel
     print("Scanning directories...")
-    original_files = process_directory(original_dir, max_workers)
-    flattened_files = process_directory(flattened_dir, max_workers)
+    original_files = process_directory(
+        original_dir, is_flattened=False, max_workers=max_workers
+    )
+    flattened_files = process_directory(
+        flattened_dir, is_flattened=True, max_workers=max_workers
+    )
 
     # Group original files by page count for faster lookup
     original_by_page_count = defaultdict(list)

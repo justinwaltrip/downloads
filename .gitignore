@@ -1,6 +1,6 @@
 *
 !*.json
-!script.py
+!*.py
 !.gitignore
 
 # Devenv
