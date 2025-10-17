@@ -279,7 +279,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--text-threshold",
         type=float,
-        default=0.7,
+        default=0.99,
         help="Text similarity threshold for matching (0.0-1.0, default: 0.7)",
     )
     parser.add_argument(
