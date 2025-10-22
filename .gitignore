@@ -2,6 +2,19 @@
 !*.json
 !*.py
 !.gitignore
+!devenv.nix
+!devenv.lock
+!devenv.yaml
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
 
 # Devenv
 .devenv*
