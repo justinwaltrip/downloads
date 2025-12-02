@@ -168,14 +168,8 @@ if __name__ == "__main__":
     if args.errors:
         # Handle the specific error format you provided
         error_text = """
-- 827499a6-06fb-4e70-a0a3-e86b8c961f9d.tif: File "827499a6-06fb-4e70-a0a3-e86b8c961f9d.tif" has unsupported file type
-- d8af4c1e-567f-4b49-ba36-d49b9853a140.xlsx: Can't detect encoding for file "d8af4c1e-567f-4b49-ba36-d49b9853a140.xlsx"
-- 258a929c-c896-4710-9455-45c59c7fd0bb.xlsm: Cannot detect simple header in file "258a929c-c896-4710-9455-45c59c7fd0bb.xlsm"
-- 38fbfa34-ff3c-4c16-9058-dfde858e20d7.aspx: 38fbfa34-ff3c-4c16-9058-dfde858e20d7.aspx failed to process
-- 440fc715-d1fe-41e9-9f3f-f04faa1026c4.xlsm: Cannot detect simple header in file "440fc715-d1fe-41e9-9f3f-f04faa1026c4.xlsm"
-- 6a551b26-b708-4112-826f-f6684313b5fa.kml: File "6a551b26-b708-4112-826f-f6684313b5fa.kml" has unsupported file type
-- ce2f8ec2-1b1b-408d-9938-0b45c95e9893.kml: File "ce2f8ec2-1b1b-408d-9938-0b45c95e9893.kml" has unsupported file type
-- 9459720e-8618-409f-8550-204f068474c7.xlsm: Cannot detect simple header in file "9459720e-8618-409f-8550-204f068474c7.xlsm"
+- 138d4073-acac-4f7e-8e75-a4956628567d: File "138d4073-acac-4f7e-8e75-a4956628567d" has unsupported file type
+- 6c318e25-4f73-4d61-917f-883bafdb1fd8.xlsx: 6c318e25-4f73-4d61-917f-883bafdb1fd8.xlsx failed to process
         """
         convert_error_list(error_text, mapping_file_path, args.output)
     else:
