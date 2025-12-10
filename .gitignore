@@ -1,11 +1,3 @@
-*
-!*.json
-!*.py
-!.gitignore
-!devenv.nix
-!devenv.lock
-!devenv.yaml
-
 # Devenv
 .devenv*
 devenv.local.nix
@@ -25,3 +17,6 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+
+.history
+**/.DS_Store
