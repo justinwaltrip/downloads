@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 
 def create_property_management_agreement():
     """Create a 15-page Property Management Agreement with key excerpts on specific pages"""
-    filename = "property_management_agreement.pdf"
+    filename = "Shelter_Cove_District_Property_Management_Agreement_2024.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -211,7 +211,7 @@ def create_property_management_agreement():
 
 def create_email_correspondence():
     """Create Email Correspondence Chain PDF"""
-    filename = "email_correspondence_hvac.pdf"
+    filename = "Email_Thread_HVAC_Maintenance_Oct2024.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -552,7 +552,7 @@ def create_email_correspondence():
 
 def create_lease_excerpt():
     """Create Lease Agreement Excerpt (Page 4 only)"""
-    filename = "lease_agreement_excerpt.pdf"
+    filename = "Marios_Marina_Lease_Agreement_Excerpt_Section6.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -637,9 +637,9 @@ def main():
     print("-" * 50)
     print("All documents generated successfully!")
     print("\nGenerated files:")
-    print("1. property_management_agreement.pdf (15 pages)")
-    print("2. email_correspondence_hvac.pdf")
-    print("3. lease_agreement_excerpt.pdf")
+    print("1. Shelter_Cove_District_Property_Management_Agreement_2024.pdf (15 pages)")
+    print("2. Email_Thread_HVAC_Maintenance_Oct2024.pdf")
+    print("3. Marios_Marina_Lease_Agreement_Excerpt_Section6.pdf")
 
 
 if __name__ == "__main__":
