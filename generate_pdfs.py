@@ -4,12 +4,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY
-from reportlab.pdfgen import canvas
+from datetime import datetime
 
 
-def create_property_management_agreement():
-    """Create a 15-page Property Management Agreement with key excerpts on specific pages"""
-    filename = "Shelter_Cove_District_Property_Management_Agreement_2024.pdf"
+def create_offer_letter():
+    """Create employment offer letter"""
+    filename = "Mobility_Authority_Offer_Letter_Martinez_2022.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -21,197 +21,113 @@ def create_property_management_agreement():
 
     styles = getSampleStyleSheet()
 
-    # Custom styles
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontSize=16,
-        textColor="black",
-        spaceAfter=30,
-        alignment=TA_CENTER,
-        fontName="Helvetica-Bold",
-    )
-
-    heading_style = ParagraphStyle(
-        "CustomHeading",
-        parent=styles["Heading2"],
-        fontSize=12,
-        textColor="black",
-        spaceAfter=12,
-        spaceBefore=12,
-        fontName="Helvetica-Bold",
-    )
-
-    subheading_style = ParagraphStyle(
-        "CustomSubHeading",
-        parent=styles["Heading3"],
+    header_style = ParagraphStyle(
+        "Header",
+        parent=styles["Normal"],
         fontSize=10,
         textColor="black",
-        spaceAfter=8,
-        spaceBefore=8,
+        alignment=TA_CENTER,
         fontName="Helvetica-Bold",
+        spaceAfter=20,
     )
 
     body_style = ParagraphStyle(
         "CustomBody",
         parent=styles["BodyText"],
-        fontSize=10,
+        fontSize=11,
+        textColor="black",
+        spaceAfter=12,
+        leading=16,
+    )
+
+    signature_style = ParagraphStyle(
+        "Signature",
+        parent=styles["Normal"],
+        fontSize=11,
         textColor="black",
         spaceAfter=6,
-        alignment=TA_JUSTIFY,
-        leading=14,
     )
 
     story = []
 
-    # Page 1 - Title Page
-    story.append(Spacer(1, 1 * inch))
-    story.append(Paragraph("PROPERTY MANAGEMENT AGREEMENT", title_style))
+    # Letterhead
+    story.append(Paragraph("CENTRAL TEXAS MOBILITY AUTHORITY", header_style))
+    story.append(Paragraph("3300 North IH-35, Suite 300", body_style))
+    story.append(Paragraph("Austin, Texas 78705", body_style))
     story.append(Spacer(1, 0.3 * inch))
-    story.append(Paragraph("<b>Date:</b> March 15, 2024", body_style))
-    story.append(
-        Paragraph(
-            '<b>Between:</b> Shelter Cove District ("Owner") and Coastal Property Services LLC ("Manager")',
-            body_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>Property:</b> Marios Marina, 533 Machi Road, Shelter Cove, California 95589",
-            body_style,
-        )
-    )
 
-    # Pages 2-3 - Blank
-    story.append(PageBreak())
-    story.append(Paragraph(" ", body_style))
-    story.append(PageBreak())
-    story.append(Paragraph(" ", body_style))
-
-    # Page 4 - SECTION 5: MAINTENANCE AND REPAIRS
-    story.append(PageBreak())
-    story.append(Paragraph("SECTION 5: MAINTENANCE AND REPAIRS", heading_style))
+    # Date and address
+    story.append(Paragraph("March 15, 2022", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph("Jane Martinez", body_style))
+    story.append(Paragraph("456 Oak Street", body_style))
+    story.append(Paragraph("Austin, TX 78701", body_style))
     story.append(Spacer(1, 0.2 * inch))
 
-    story.append(
-        Paragraph("5.1 Manager's Maintenance Responsibilities", subheading_style)
-    )
-    story.append(Paragraph("Manager shall be responsible for:", body_style))
+    # Letter body
+    story.append(Paragraph("Dear Ms. Martinez,", body_style))
     story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("• Routine inspections of all common areas", body_style))
-    story.append(Paragraph("• Landscaping and grounds maintenance", body_style))
-    story.append(
-        Paragraph("• Exterior building maintenance including roofing", body_style)
-    )
+
     story.append(
         Paragraph(
-            "• <b>HVAC system maintenance, repair, and replacement for all building systems</b>",
+            "We are pleased to offer you the position of <b>Chief Operating Officer</b> with the Central Texas Mobility Authority, reporting directly to the Executive Director.",
             body_style,
         )
     )
-    story.append(Paragraph("• Plumbing and electrical system oversight", body_style))
+
+    story.append(Paragraph("<b>Position Details:</b>", body_style))
+    story.append(Paragraph("• <b>Start Date:</b> April 18, 2022", body_style))
+    story.append(Paragraph("• <b>Base Salary:</b> $185,000 annually", body_style))
     story.append(
-        Paragraph("• Emergency repairs up to $5,000 without prior approval", body_style)
+        Paragraph(
+            "• <b>Benefits:</b> Comprehensive health insurance, 401(k) with employer matching, 3 weeks paid time off",
+            body_style,
+        )
     )
+    story.append(Paragraph("• <b>Status:</b> Full-time, exempt position", body_style))
+
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(
+        Paragraph(
+            "This offer is contingent upon successful completion of a background check. Please sign and return this letter by March 22, 2022 to confirm your acceptance.",
+            body_style,
+        )
+    )
+
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(
+        Paragraph(
+            "We look forward to welcoming you to our leadership team!",
+            body_style,
+        )
+    )
+
     story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph("Sincerely,", signature_style))
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("Robert Chen", signature_style))
+    story.append(Paragraph("Executive Director", signature_style))
+    story.append(Paragraph("Central Texas Mobility Authority", signature_style))
 
-    story.append(Paragraph("5.2 Maintenance Schedule", subheading_style))
-    story.append(Paragraph("Manager agrees to:", body_style))
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph("• Conduct quarterly HVAC inspections and servicing", body_style)
-    )
+    story.append(Spacer(1, 0.5 * inch))
+    story.append(Paragraph("_" * 50, body_style))
     story.append(
         Paragraph(
-            "• Maintain service contracts with licensed HVAC contractors", body_style
-        )
-    )
-    story.append(Paragraph("• Respond to HVAC emergencies within 4 hours", body_style))
-    story.append(
-        Paragraph("• Keep detailed maintenance logs for Owner review", body_style)
-    )
-
-    # Pages 5-8 - Blank
-    for _ in range(4):
-        story.append(PageBreak())
-        story.append(Paragraph(" ", body_style))
-
-    # Page 9 - SECTION 8: TENANT COORDINATION
-    story.append(PageBreak())
-    story.append(Paragraph("SECTION 8: TENANT COORDINATION", heading_style))
-    story.append(Spacer(1, 0.2 * inch))
-
-    story.append(Paragraph("8.3 Tenant Maintenance Issues", subheading_style))
-    story.append(
-        Paragraph("When tenants report maintenance issues, Manager shall:", body_style)
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph(
-            "• Assess whether issue falls under tenant or landlord responsibility per lease terms",
+            "I accept the above terms of employment:",
             body_style,
         )
     )
-    story.append(
-        Paragraph(
-            "• <b>For HVAC issues: Manager assumes responsibility regardless of lease terms to ensure property protection</b>",
-            body_style,
-        )
-    )
-    story.append(
-        Paragraph("• Coordinate with tenants for access within 24-48 hours", body_style)
-    )
-    story.append(
-        Paragraph(
-            "• Document all maintenance activities in monthly reports", body_style
-        )
-    )
-
-    # Pages 10-11 - Blank
-    story.append(PageBreak())
-    story.append(Paragraph(" ", body_style))
-    story.append(PageBreak())
-    story.append(Paragraph(" ", body_style))
-
-    # Page 12 - SECTION 11: INSURANCE AND LIABILITY
-    story.append(PageBreak())
-    story.append(Paragraph("SECTION 11: INSURANCE AND LIABILITY", heading_style))
-    story.append(Spacer(1, 0.2 * inch))
-
-    story.append(Paragraph("11.4 Equipment Coverage", subheading_style))
-    story.append(Paragraph("Manager maintains insurance coverage for:", body_style))
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph("• All mechanical systems including HVAC equipment", body_style)
-    )
-    story.append(
-        Paragraph(
-            "• Manager assumes liability for mechanical system failures", body_style
-        )
-    )
-    story.append(
-        Paragraph("• Coverage includes emergency replacement costs", body_style)
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph(
-            "Owner acknowledges Manager's authority to make urgent repairs to preserve property value.",
-            body_style,
-        )
-    )
-
-    # Pages 13-15 - Blank
-    for _ in range(3):
-        story.append(PageBreak())
-        story.append(Paragraph(" ", body_style))
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("Signature: _________________________", body_style))
+    story.append(Paragraph("Date: March 18, 2022", body_style))
 
     doc.build(story)
     print(f"Created: {filename}")
 
 
-def create_email_correspondence():
-    """Create Email Correspondence Chain PDF"""
-    filename = "Email_Thread_HVAC_Maintenance_Oct2024.pdf"
+def create_performance_review_1():
+    """Create first performance review (positive)"""
+    filename = "Performance_Review_Martinez_Oct2022.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -224,335 +140,139 @@ def create_email_correspondence():
     styles = getSampleStyleSheet()
 
     title_style = ParagraphStyle(
-        "CustomTitle",
+        "Title",
         parent=styles["Heading1"],
         fontSize=14,
         textColor="black",
-        spaceAfter=20,
         alignment=TA_CENTER,
+        spaceAfter=20,
         fontName="Helvetica-Bold",
     )
 
-    email_header_style = ParagraphStyle(
-        "EmailHeader",
-        parent=styles["Normal"],
-        fontSize=9,
-        textColor="#333333",
-        spaceAfter=4,
-        fontName="Helvetica",
-    )
-
-    email_subject_style = ParagraphStyle(
-        "EmailSubject",
-        parent=styles["Normal"],
-        fontSize=10,
+    heading_style = ParagraphStyle(
+        "Heading",
+        parent=styles["Heading2"],
+        fontSize=12,
         textColor="black",
         spaceAfter=10,
         fontName="Helvetica-Bold",
     )
 
     body_style = ParagraphStyle(
-        "CustomBody",
+        "Body",
         parent=styles["BodyText"],
         fontSize=10,
         textColor="black",
-        spaceAfter=6,
+        spaceAfter=8,
         leading=14,
     )
 
     story = []
 
-    # Title
-    story.append(Paragraph("EMAIL THREAD: HVAC Maintenance Clarification", title_style))
-    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("EMPLOYEE PERFORMANCE REVIEW", title_style))
+    story.append(Spacer(1, 0.2 * inch))
 
-    # Email 1
-    story.append(Paragraph("Email 1 of 5", email_subject_style))
+    # Employee info
+    story.append(Paragraph("<b>Employee:</b> Jane Martinez", body_style))
+    story.append(Paragraph("<b>Position:</b> Chief Operating Officer", body_style))
     story.append(
         Paragraph(
-            "<b>From:</b> Mario Battaglia &lt;mario@mariosmarina.com&gt;",
-            email_header_style,
+            "<b>Review Period:</b> April 18, 2022 - October 18, 2022",
+            body_style,
         )
     )
+    story.append(Paragraph("<b>Review Date:</b> October 25, 2022", body_style))
     story.append(
-        Paragraph(
-            "<b>To:</b> Jennifer Wells &lt;jwells@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
+        Paragraph("<b>Reviewer:</b> Robert Chen, Executive Director", body_style)
     )
-    story.append(Paragraph("<b>Date:</b> October 3, 2024, 9:42 AM", email_header_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    # Rating
     story.append(
         Paragraph(
-            "<b>Subject:</b> HVAC Unit Making Noise - Marina Office",
-            email_subject_style,
+            "<b>OVERALL RATING: EXCEEDS EXPECTATIONS (4/5)</b>",
+            heading_style,
         )
     )
     story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("Hi Jennifer,", body_style))
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "The HVAC unit in the main marina office has been making a grinding noise for the past week. It's getting louder and I'm concerned it might fail completely.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "According to our lease agreement (Section 6, I believe), I think this might be my responsibility to handle, but I wanted to check with you first since it's a major building system. Can you advise on the proper procedure?",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "The unit is still cooling, but the noise is disruptive to customers.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(Paragraph("Thanks,<br/>Mario", body_style))
-    story.append(Spacer(1, 0.3 * inch))
 
-    # Email 2
-    story.append(Paragraph("Email 2 of 5", email_subject_style))
+    # Strengths
+    story.append(Paragraph("STRENGTHS:", heading_style))
     story.append(
         Paragraph(
-            "<b>From:</b> Jennifer Wells &lt;jwells@coastalpropertyservices.com&gt;",
-            email_header_style,
+            "• Successfully restructured the operations division, improving efficiency by 15%",
+            body_style,
         )
     )
     story.append(
         Paragraph(
-            "<b>To:</b> Mario Battaglia &lt;mario@mariosmarina.com&gt;",
-            email_header_style,
+            "• Reduced operational costs by 12% while maintaining service quality",
+            body_style,
         )
     )
     story.append(
-        Paragraph("<b>Date:</b> October 3, 2024, 11:15 AM", email_header_style)
+        Paragraph(
+            "• Established strong relationships with key stakeholders and contractors",
+            body_style,
+        )
     )
     story.append(
         Paragraph(
-            "<b>Subject:</b> RE: HVAC Unit Making Noise - Marina Office",
-            email_subject_style,
+            "• Implemented new safety protocols that resulted in zero workplace incidents",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Excellent crisis management during August construction delays",
+            body_style,
         )
     )
     story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("Hi Mario,", body_style))
-    story.append(Spacer(1, 0.05 * inch))
+
+    # Areas for development
+    story.append(Paragraph("AREAS FOR DEVELOPMENT:", heading_style))
     story.append(
         Paragraph(
-            "<b>Don't worry about this - HVAC is definitely our responsibility under the property management agreement.</b> I'll have our HVAC contractor (Redwood Climate Control) come out tomorrow to assess it.",
+            "• Continue building relationships with Board members",
             body_style,
         )
     )
-    story.append(Spacer(1, 0.05 * inch))
     story.append(
         Paragraph(
-            "We handle all mechanical systems to protect the owner's investment. You shouldn't be paying for or arranging any HVAC work.",
+            "• Enhance public speaking confidence for board presentations",
             body_style,
         )
     )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(Paragraph("I'll keep you posted on what they find.", body_style))
-    story.append(Spacer(1, 0.05 * inch))
+    story.append(Spacer(1, 0.1 * inch))
+
+    # Comments
+    story.append(Paragraph("REVIEWER COMMENTS:", heading_style))
     story.append(
         Paragraph(
-            "Best,<br/>Jennifer Wells<br/>Property Manager<br/>Coastal Property Services LLC",
+            "Jane has been an exceptional addition to our leadership team. Her operational expertise and strategic thinking have already made a significant positive impact on the Authority. She demonstrates strong leadership qualities and has earned the respect of her team and peers. I look forward to her continued contributions.",
             body_style,
         )
     )
     story.append(Spacer(1, 0.3 * inch))
 
-    # Email 3
-    story.append(Paragraph("Email 3 of 5", email_subject_style))
+    # Signatures
+    story.append(Paragraph("_" * 50, body_style))
     story.append(
-        Paragraph(
-            "<b>From:</b> Mario Battaglia &lt;mario@mariosmarina.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>To:</b> Jennifer Wells &lt;jwells@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(Paragraph("<b>Date:</b> October 3, 2024, 2:33 PM", email_header_style))
-    story.append(
-        Paragraph(
-            "<b>Subject:</b> RE: HVAC Unit Making Noise - Marina Office",
-            email_subject_style,
-        )
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("Jennifer,", body_style))
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            'Thanks for the quick response. Just to clarify - I was reviewing my lease this morning and <b>Section 6(a), item 4 specifically mentions that I\'m responsible for "maintenance and repair of all improvements constructed by Lessee."</b>',
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "Since I made significant improvements to the office building including the HVAC upgrade in 2023, I want to make sure we're on the same page about who handles this.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "I'm fine either way, just want to avoid any confusion or billing issues later.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(Paragraph("Mario", body_style))
-    story.append(PageBreak())
-
-    # Email 4
-    story.append(Paragraph("Email 4 of 5", email_subject_style))
-    story.append(
-        Paragraph(
-            "<b>From:</b> Jennifer Wells &lt;jwells@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>To:</b> David Chen &lt;dchen@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>Cc:</b> Mario Battaglia &lt;mario@mariosmarina.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(Paragraph("<b>Date:</b> October 3, 2024, 4:50 PM", email_header_style))
-    story.append(
-        Paragraph(
-            "<b>Subject:</b> RE: HVAC Unit Making Noise - Marina Office",
-            email_subject_style,
-        )
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("Looping in David from our legal team.", body_style))
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "Mario raises a good point. <b>There may be a conflict between the tenant lease and our management agreement regarding HVAC responsibility.</b> Our agreement with the District clearly puts all HVAC under our scope (Section 5.1), but Mario's lease may assign responsibility for improvements he made.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "David - can you review both documents and advise? The HVAC tech is scheduled for tomorrow at 10 AM.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(Paragraph("Jennifer", body_style))
-    story.append(Spacer(1, 0.3 * inch))
-
-    # Email 5
-    story.append(Paragraph("Email 5 of 5", email_subject_style))
-    story.append(
-        Paragraph(
-            "<b>From:</b> David Chen &lt;dchen@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>To:</b> Jennifer Wells &lt;jwells@coastalpropertyservices.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(
-        Paragraph(
-            "<b>Cc:</b> Mario Battaglia &lt;mario@mariosmarina.com&gt;",
-            email_header_style,
-        )
-    )
-    story.append(Paragraph("<b>Date:</b> October 4, 2024, 8:20 AM", email_header_style))
-    story.append(
-        Paragraph(
-            "<b>Subject:</b> RE: HVAC Unit Making Noise - Marina Office - URGENT CLARIFICATION NEEDED",
-            email_subject_style,
-        )
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(Paragraph("Jennifer and Mario,", body_style))
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "After reviewing both documents, <b>we have a clear conflict:</b>",
-            body_style,
-        )
+        Paragraph("Employee Signature: _______________  Date: 10/25/22", body_style)
     )
     story.append(Spacer(1, 0.1 * inch))
     story.append(
-        Paragraph(
-            "<b>Tenant Lease (Section 6(a), item 4):</b> Tenant responsible for maintenance/repair of all improvements constructed by Lessee",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "<b>Property Management Agreement (Section 5.1):</b> Manager responsible for all HVAC system maintenance and repair",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph(
-            "<b>Recommendation:</b> We need written clarification from Shelter Cove District on which document takes precedence. In the interim, I suggest:",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "1. Manager proceeds with inspection/repair to prevent property damage",
-            body_style,
-        )
-    )
-    story.append(
-        Paragraph("2. Hold invoicing pending District clarification", body_style)
-    )
-    story.append(
-        Paragraph(
-            "3. District should issue amendment to either lease or management agreement",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.1 * inch))
-    story.append(
-        Paragraph(
-            "This affects not just this repair but ongoing maintenance protocol.",
-            body_style,
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "David Chen, Legal Counsel<br/>Coastal Property Services LLC", body_style
-        )
+        Paragraph("Supervisor Signature: _______________  Date: 10/25/22", body_style)
     )
 
     doc.build(story)
     print(f"Created: {filename}")
 
 
-def create_lease_excerpt():
-    """Create Lease Agreement Excerpt (Page 4 only)"""
-    filename = "Marios_Marina_Lease_Agreement_Excerpt_Section6.pdf"
+def create_performance_review_2():
+    """Create second performance review (concerns)"""
+    filename = "Performance_Review_Martinez_May2023.pdf"
     doc = SimpleDocTemplate(
         filename,
         pagesize=letter,
@@ -564,82 +284,407 @@ def create_lease_excerpt():
 
     styles = getSampleStyleSheet()
 
+    title_style = ParagraphStyle(
+        "Title",
+        parent=styles["Heading1"],
+        fontSize=14,
+        textColor="black",
+        alignment=TA_CENTER,
+        spaceAfter=20,
+        fontName="Helvetica-Bold",
+    )
+
     heading_style = ParagraphStyle(
-        "CustomHeading",
+        "Heading",
         parent=styles["Heading2"],
         fontSize=12,
         textColor="black",
-        spaceAfter=12,
-        spaceBefore=12,
+        spaceAfter=10,
         fontName="Helvetica-Bold",
     )
 
     body_style = ParagraphStyle(
-        "CustomBody",
+        "Body",
         parent=styles["BodyText"],
         fontSize=10,
         textColor="black",
-        spaceAfter=6,
-        alignment=TA_JUSTIFY,
+        spaceAfter=8,
         leading=14,
     )
 
     story = []
 
-    story.append(Paragraph("LEASE AGREEMENT - Page 4", heading_style))
-    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("EMPLOYEE PERFORMANCE REVIEW", title_style))
+    story.append(Spacer(1, 0.2 * inch))
 
-    story.append(
-        Paragraph("SECTION 6: LESSEE'S IMPROVEMENTS AND OBLIGATIONS", heading_style)
-    )
-    story.append(Spacer(1, 0.1 * inch))
-
-    story.append(
-        Paragraph("(a) Lessee shall, at its sole cost and expense:", body_style)
-    )
-    story.append(Spacer(1, 0.1 * inch))
-
+    story.append(Paragraph("<b>Employee:</b> Jane Martinez", body_style))
+    story.append(Paragraph("<b>Position:</b> Chief Operating Officer", body_style))
     story.append(
         Paragraph(
-            "1. Maintain liability insurance as specified in Section 14", body_style
-        )
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(Paragraph("2. Pay all utilities for the Premises", body_style))
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph("3. Comply with all applicable laws and regulations", body_style)
-    )
-    story.append(Spacer(1, 0.05 * inch))
-    story.append(
-        Paragraph(
-            "4. <b>Perform all maintenance and repair of all improvements, structures, and fixtures constructed, installed, or placed on the Premises by Lessee, including but not limited to buildings, docks, utilities, HVAC systems, and landscaping</b>",
+            "<b>Review Period:</b> October 18, 2022 - April 18, 2023",
             body_style,
         )
     )
-    story.append(Spacer(1, 0.05 * inch))
+    story.append(Paragraph("<b>Review Date:</b> May 2, 2023", body_style))
     story.append(
-        Paragraph("5. Maintain the Premises in good condition and repair", body_style)
+        Paragraph("<b>Reviewer:</b> Robert Chen, Executive Director", body_style)
+    )
+    story.append(Spacer(1, 0.2 * inch))
+
+    story.append(
+        Paragraph("<b>OVERALL RATING: MEETS EXPECTATIONS (3/5)</b>", heading_style)
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(Paragraph("PERFORMANCE CONCERNS:", heading_style))
+    story.append(
+        Paragraph(
+            "• Missed Q1 2023 budget submission deadline by 2 weeks, creating board meeting complications",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Communication gaps with finance team noted by CFO",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Board members expressed concerns about project timeline delays on toll lane expansion",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Two instances of missing scheduled meetings without advance notice",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(Paragraph("POSITIVE NOTES:", heading_style))
+    story.append(Paragraph("• Vendor relationships remain strong", body_style))
+    story.append(Paragraph("• Safety record continues to be excellent", body_style))
+    story.append(Paragraph("• Team morale in operations remains positive", body_style))
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(Paragraph("ACTION PLAN:", heading_style))
+    story.append(
+        Paragraph(
+            "Monthly one-on-one check-ins implemented starting June 2023 to address communication and deadline management. Employee is expected to demonstrate improvement in organizational and communication skills over the next review period.",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.3 * inch))
+
+    story.append(Paragraph("_" * 50, body_style))
+    story.append(
+        Paragraph("Employee Signature: _______________  Date: 5/2/23", body_style)
+    )
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(
+        Paragraph("Supervisor Signature: _______________  Date: 5/2/23", body_style)
     )
 
     doc.build(story)
     print(f"Created: {filename}")
 
 
+def create_written_warning():
+    """Create formal written warning"""
+    filename = "Written_Warning_Martinez_Aug2023.pdf"
+    doc = SimpleDocTemplate(
+        filename,
+        pagesize=letter,
+        topMargin=1 * inch,
+        bottomMargin=1 * inch,
+        leftMargin=1 * inch,
+        rightMargin=1 * inch,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "Title",
+        parent=styles["Heading1"],
+        fontSize=14,
+        textColor="black",
+        alignment=TA_CENTER,
+        spaceAfter=20,
+        fontName="Helvetica-Bold",
+    )
+
+    heading_style = ParagraphStyle(
+        "Heading",
+        parent=styles["Heading2"],
+        fontSize=12,
+        textColor="black",
+        spaceAfter=10,
+        fontName="Helvetica-Bold",
+    )
+
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["BodyText"],
+        fontSize=10,
+        textColor="black",
+        spaceAfter=10,
+        leading=14,
+    )
+
+    story = []
+
+    story.append(Paragraph("CONFIDENTIAL MEMORANDUM", title_style))
+    story.append(Spacer(1, 0.3 * inch))
+
+    story.append(
+        Paragraph("<b>TO:</b> Jane Martinez, Chief Operating Officer", body_style)
+    )
+    story.append(Paragraph("<b>FROM:</b> Robert Chen, Executive Director", body_style))
+    story.append(Paragraph("<b>DATE:</b> August 14, 2023", body_style))
+    story.append(Paragraph("<b>RE:</b> Performance Improvement Plan", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    story.append(
+        Paragraph(
+            "This memorandum serves as formal notice of serious performance concerns and outlines a mandatory Performance Improvement Plan (PIP).",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(Paragraph("SPECIFIC PERFORMANCE ISSUES:", heading_style))
+    story.append(
+        Paragraph(
+            "<b>1. July 2023 Board Meeting:</b> Arrived 20 minutes late to Board of Directors meeting without prior notice or explanation, causing agenda delays and board member frustration.",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "<b>2. Budget Variance:</b> Q2 2023 operational costs exceeded approved budget by 18% ($127,000), with insufficient documentation or justification provided to finance team.",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "<b>3. Staff Complaints:</b> Three separate team members (names withheld) submitted written complaints regarding communication breakdowns and unclear direction from COO office.",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(Paragraph("REQUIRED ACTIONS (30-DAY PERIOD):", heading_style))
+    story.append(
+        Paragraph(
+            "• Submit weekly written status reports every Friday by 5:00 PM",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Attend all scheduled meetings punctually; provide 24-hour notice for any unavoidable conflicts",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Complete management and communication skills training by September 15, 2023",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Meet weekly with Executive Director for progress review",
+            body_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            "• Develop and submit corrective budget plan by August 25, 2023",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(
+        Paragraph(
+            "<b>Please understand that failure to demonstrate immediate and sustained improvement may result in further disciplinary action up to and including termination of employment.</b>",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(
+        Paragraph(
+            "We will meet on September 15, 2023 to review your progress under this plan.",
+            body_style,
+        )
+    )
+    story.append(Spacer(1, 0.3 * inch))
+
+    story.append(Paragraph("_" * 50, body_style))
+    story.append(
+        Paragraph(
+            "Employee Acknowledgment (receipt only, not agreement): _______________  Date: ______",
+            body_style,
+        )
+    )
+
+    doc.build(story)
+    print(f"Created: {filename}")
+
+
+def create_termination_letter():
+    """Create termination letter"""
+    filename = "Termination_Letter_Martinez_Sept2023.pdf"
+    doc = SimpleDocTemplate(
+        filename,
+        pagesize=letter,
+        topMargin=1 * inch,
+        bottomMargin=1 * inch,
+        leftMargin=1 * inch,
+        rightMargin=1 * inch,
+    )
+
+    styles = getSampleStyleSheet()
+
+    header_style = ParagraphStyle(
+        "Header",
+        parent=styles["Normal"],
+        fontSize=10,
+        textColor="black",
+        alignment=TA_CENTER,
+        fontName="Helvetica-Bold",
+        spaceAfter=20,
+    )
+
+    title_style = ParagraphStyle(
+        "Title",
+        parent=styles["Heading1"],
+        fontSize=12,
+        textColor="black",
+        spaceAfter=20,
+        fontName="Helvetica-Bold",
+    )
+
+    body_style = ParagraphStyle(
+        "Body",
+        parent=styles["BodyText"],
+        fontSize=11,
+        textColor="black",
+        spaceAfter=12,
+        leading=16,
+    )
+
+    story = []
+
+    story.append(Paragraph("CONFIDENTIAL", title_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    story.append(Paragraph("CENTRAL TEXAS MOBILITY AUTHORITY", header_style))
+    story.append(Paragraph("3300 North IH-35, Suite 300", body_style))
+    story.append(Paragraph("Austin, Texas 78705", body_style))
+    story.append(Spacer(1, 0.3 * inch))
+
+    story.append(Paragraph("September 28, 2023", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    story.append(Paragraph("Jane Martinez", body_style))
+    story.append(Paragraph("456 Oak Street", body_style))
+    story.append(Paragraph("Austin, TX 78701", body_style))
+    story.append(Spacer(1, 0.2 * inch))
+
+    story.append(Paragraph("Dear Ms. Martinez,", body_style))
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(
+        Paragraph(
+            "This letter confirms our conversation earlier today regarding the termination of your employment as Chief Operating Officer with the Central Texas Mobility Authority, <b>effective immediately (September 28, 2023)</b>.",
+            body_style,
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "<b>Reason for Termination:</b> Performance-based termination due to failure to meet performance objectives outlined in the Performance Improvement Plan dated August 14, 2023.",
+            body_style,
+        )
+    )
+
+    story.append(Paragraph("<b>Final Compensation:</b>", body_style))
+    story.append(Paragraph("• Salary through September 28, 2023", body_style))
+    story.append(Paragraph("• Accrued paid time off: 8 days ($5,692.31)", body_style))
+    story.append(
+        Paragraph("• Final paycheck to be issued: October 6, 2023", body_style)
+    )
+    story.append(Spacer(1, 0.1 * inch))
+
+    story.append(
+        Paragraph(
+            "<b>Benefits:</b> Your health insurance coverage will continue through October 31, 2023. COBRA continuation information is enclosed.",
+            body_style,
+        )
+    )
+
+    story.append(
+        Paragraph(
+            "<b>Return of Property:</b> Please return all Authority property including laptop, access cards, keys, and files by October 2, 2023 to Human Resources.",
+            body_style,
+        )
+    )
+
+    story.append(Spacer(1, 0.1 * inch))
+    story.append(
+        Paragraph(
+            "If you have questions regarding final compensation or benefits, please contact HR at (512) 555-0100.",
+            body_style,
+        )
+    )
+
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph("Sincerely,", body_style))
+    story.append(Spacer(1, 0.3 * inch))
+    story.append(Paragraph("Robert Chen", body_style))
+    story.append(Paragraph("Executive Director", body_style))
+    story.append(Paragraph("Central Texas Mobility Authority", body_style))
+
+    story.append(Spacer(1, 0.2 * inch))
+    story.append(Paragraph("cc: Human Resources File", body_style))
+
+    doc.build(story)
+    print(f"Created: {filename}")
+
+
 def main():
-    print("Generating synthetic PDF documents...")
-    print("-" * 50)
+    print("Generating Employment Timeline Demo Documents...")
+    print("-" * 60)
 
-    create_property_management_agreement()
-    create_email_correspondence()
-    create_lease_excerpt()
+    create_offer_letter()
+    create_performance_review_1()
+    create_performance_review_2()
+    create_written_warning()
+    create_termination_letter()
 
-    print("-" * 50)
+    print("-" * 60)
     print("All documents generated successfully!")
     print("\nGenerated files:")
-    print("1. Shelter_Cove_District_Property_Management_Agreement_2024.pdf (15 pages)")
-    print("2. Email_Thread_HVAC_Maintenance_Oct2024.pdf")
-    print("3. Marios_Marina_Lease_Agreement_Excerpt_Section6.pdf")
+    print("1. Mobility_Authority_Offer_Letter_Martinez_2022.pdf")
+    print("2. Performance_Review_Martinez_Oct2022.pdf (Exceeds Expectations)")
+    print("3. Performance_Review_Martinez_May2023.pdf (Meets Expectations)")
+    print("4. Written_Warning_Martinez_Aug2023.pdf (PIP)")
+    print("5. Termination_Letter_Martinez_Sept2023.pdf")
+    print("\n" + "=" * 60)
+    print("KEY TIMELINE:")
+    print("  3/15/22  - Offer letter")
+    print("  4/18/22  - Start date")
+    print("  10/25/22 - First review: EXCEEDS (4/5)")
+    print("  5/2/23   - Second review: MEETS (3/5) - performance concerns")
+    print("  8/14/23  - Written warning & 30-day PIP")
+    print("  9/28/23  - TERMINATED")
+    print("  Total employment: 17 months")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
